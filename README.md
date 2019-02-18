@@ -18,21 +18,23 @@ Follow the [docker_wordpress_template/README.md](./docker_wordpress_template/REA
 ## Backups
 
 To backup the WordPress sites run `sudo bash ./docker-backup.sh`  
-This script will backup the `wp-content` folders for all containers with the `backup.site` label and will preform a SQL dump for all containers with the `backup.db` label. These labels are part of the docker_wordpress_conf/docker-compose.yml file by default
+This script will backup the `wp-content` folders for all containers with the `backup.site` label and will perform a SQL dump for all containers with the `backup.db` label. These labels are part of the docker_wordpress_conf/docker-compose.yml file by default
 
 Backups are saved to `/srv/backups/SITE_NAME`
 
 ## Restoring Backups
 
-Start (run `docker-compose up -d`) the containers you are restoring, then run the following
+Start the containers you are restoring, then run the following
 
 ```sh 
 # Restore Database
-cat SQL_DUMP.sql | docker exec -i CONTAINER bash -c '/usr/bin/mysql -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE'
+cat SQL_DUMP.sql | docker exec -i MYSQL_CONTAINER bash -c '/usr/bin/mysql -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE'
 
 # Restore Site
-docker run --rm --volumes-from=CONTAINER -v /srv/backups/SITE_NAME:/backup ubuntu bash -c "cd /var/www/html/wp-content && tar xvf /backup/BACKUP_FILE.tar"
+docker run --rm --volumes-from=WP_CONTAINER -v /srv/backups/SITE_NAME:/backup ubuntu bash -c "cd /var/www/html/wp-content && tar xvf /backup/BACKUP_FILE.tar"
 ```
+
+To find the MYSQL_CONTAINER name and the WP_CONTAINER name cd into the site directory and run `docker-compose.yml`
 
 ## TODO:
 
