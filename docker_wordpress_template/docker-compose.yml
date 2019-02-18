@@ -1,0 +1,50 @@
+version: "3"
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  site:
+    image: wordpress:latest
+    restart: on-failure
+    environment:
+      WORDPRESS_DB_PASSWORD: $DB_PASSWORD
+      WORDPRESS_DB_NAME: $DB_NAME
+    volumes:
+      - wordpress_files:/var/www/html
+      - ./wordpress_files:/var/www/html
+    labels:
+      - traefik.enable=true
+      - "traefik.backend=${DOMAIN_NAME}_backend"
+      - "traefik.frontend.rule=Host:$DOMAIN_NAME"
+      - "traefik.domain=$DOMAIN_NAME"
+      - traefik.docker.network=web
+      - traefik.port=80
+    networks:
+      - internal
+      - web
+    depends_on:
+      - mysql
+  mysql:
+    image: mysql:5.7
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      #MYSQL_PASSWORD: $DB_PASSWORD
+      #MYSQL_USER: $DB_USER
+      MYSQL_DATABASE: $DB_NAME
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db_data:/var/lib/mysql
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
+
+volumes:
+ wordpress_files:
+ db_data:
+         
