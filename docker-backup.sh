@@ -16,10 +16,10 @@ backup_volume () {
   local host_backup_path="$BACKUP_DIR/$site_name"
   mkdir -p $host_backup_path
 
-  local file_name=$(date "+%Y-%m-%d")_"$backup_type".tar
+  local file_name="$backup_type"_$(date "+%Y-%m-%d").tar.gz
   echo $file_name
 
-  docker run --rm --volumes-from=$container_name -v $host_backup_path:/backup ubuntu bash -c "cd $container_backup_path; tar cf /backup/"$file_name" ./"
+  docker run --rm --volumes-from=$container_name -v $host_backup_path:/backup ubuntu bash -c "cd $container_backup_path; tar cfz /backup/"$file_name" ./"
 }
 
 site_containers=$(docker container ls --filter=label=backup.site --format='{{.Names}}')
@@ -32,15 +32,14 @@ do
  backup_volume $container_name "/var/www/html/wp-content" "site"
 done
 
+# Backup databases
 for container_name in $db_containers
 do
-#site_name=$(get_site_name $container_name)
-#backup_volume $container_name "/var/lib/mysql" "db"
- 
+ site_name=$(get_site_name $container_name)
  host_backup_path="$BACKUP_DIR/$site_name"
- file_name=$(date "+%Y-%m-%d")_db.sql
+ file_name=db_$(date "+%Y-%m-%d").sql.gz
 
- docker exec $container_name bash -c '/usr/bin/mysqldump -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > /tmp/backup.sql'
+ docker exec $container_name bash -c '/usr/bin/mysqldump -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE | gzip -c > /tmp/backup.sql'
  docker cp $container_name:/tmp/backup.sql $host_backup_path/$file_name
  docker exec $container_name bash -c "rm /tmp/backup.sql"
 done 
