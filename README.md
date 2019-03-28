@@ -4,11 +4,34 @@ This repo contains the configuration and documentation for hosting multiple Word
 
 ## Traefik
 
-Note: The Traefik configuration is not currently part of the repo because I need to figure out how to safely commit it
-
 The Traefik container must be running before the WordPress/MYSQL containers can run
 
-https://www.digitalocean.com/community/tutorials/how-to-use-traefik-as-a-reverse-proxy-for-docker-containers-on-ubuntu-16-04  
+### Create an admin password for Traefik
+
+```sh
+sudo apt install apache2-utils
+htpasswd -nb admin A_SECURE_PASSWORD
+```
+
+Replace `A_SECURE_PASSWORD` with your own password
+
+### Update the `traefik/traefik.toml` file
+
+`entryPoints.dashboard.auth.basic`, replace `USER_NAME:HTPASSWD` with the username and password from the previous command
+
+`acme` set `email` to your email
+
+`acme.domains` used for accessing the traefik admin panel. Update to your desired domain
+
+`docker` set `domain` this should be your site domain
+
+> Note: The linked example lists mutliple domains but for my setup I did not need to do that. Having just one domain listed here seems to work fine even though I am running multple sites.
+
+### Start traefik
+
+From the `traefik` directory run `docker-compose up -d`
+
+Guide for doing some of the above steps: https://www.digitalocean.com/community/tutorials/how-to-use-traefik-as-a-reverse-proxy-for-docker-containers-on-ubuntu-16-04  
 
 
 ## WordPress
@@ -41,4 +64,3 @@ To find the MYSQL_CONTAINER name and the WP_CONTAINER name cd into the site dire
 - [ ] Schedule backups with cron
 - [ ] Encrypt backups
 - [ ] Write script to copy backups to another server
-- [ ] Commit Traefik config

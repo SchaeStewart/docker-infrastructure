@@ -1,0 +1,26 @@
+version: "3.5"
+
+networks:
+  web:
+    name: web
+
+services:
+  proxy:
+    container_name: traefik
+    image: traefik:1.7.4-alpine
+    # command: --api --docker # Enables web ui and tells traefik to listen to docker
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - web
+    restart: always
+    labels:
+      - traefik.frontend.rule=Host:monitor.dogsoft.me
+      - traefik.port=8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+
+
