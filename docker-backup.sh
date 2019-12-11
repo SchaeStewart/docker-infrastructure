@@ -20,10 +20,10 @@ backup_volume () {
   local file_name="$backup_type"_$(date "+%Y-%m-%d").tar.gz
   echo $file_name
 
-# TODO: pick up here
-# LInk: https://linuxconfig.org/using-openssl-to-encrypt-messages-and-files-on-linux
-
-  docker run --rm --volumes-from=$container_name -v $host_backup_path:/backup ubuntu bash -c "cd $container_backup_path; tar cfz ./ | openssl rsautl -encrypt -inkey $BACKUP_KEY -out /backup/"$file_name"
+  docker run --rm --volumes-from=$container_name -v $host_backup_path:/backup ubuntu bash -c "cd $container_backup_path; tar cfz /backup/"$file_name" ./"
+  # TODO: pick up here
+  # LInk: https://linuxconfig.org/using-openssl-to-encrypt-messages-and-files-on-linux
+  # docker run --rm --volumes-from=$container_name -v $host_backup_path:/backup ubuntu bash -c "cd $container_backup_path; tar cfz ./ | openssl rsautl -encrypt -inkey $BACKUP_KEY -out /backup/"$file_name"
 }
 
 site_containers=$(docker container ls --filter=label=backup.site --format='{{.Names}}')
@@ -49,4 +49,4 @@ do
 done 
 
 # Remove backup files that are older than 60 days
-find /srv/backups -name "*.gz" -type f -mtime +60 -exec rm -f {} \;:
+find /srv/backups -name "*.gz" -type f -mtime +60 -exec rm -f {} \;
